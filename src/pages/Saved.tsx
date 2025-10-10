@@ -4,18 +4,36 @@ import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Heart, MapPin, Star, X } from "lucide-react";
+import { useToast } from "@/hooks/use-toast";
 
 const Saved = () => {
-  const [savedDestinations] = useState([
+  const { toast } = useToast();
+  const [savedDestinations, setSavedDestinations] = useState([
     { id: 1, name: "Paris", country: "France", rating: 4.8, category: "Culture" },
     { id: 2, name: "Santorini", country: "Greece", rating: 4.9, category: "Romantic" },
     { id: 3, name: "Bali", country: "Indonesia", rating: 4.7, category: "Beach" },
   ]);
 
-  const [savedActivities] = useState([
+  const [savedActivities, setSavedActivities] = useState([
     { id: 1, name: "Eiffel Tower Visit", location: "Paris, France", duration: "3h" },
     { id: 2, name: "Sunset Cruise", location: "Santorini, Greece", duration: "2h" },
   ]);
+
+  const removeDestination = (id: number) => {
+    setSavedDestinations(prev => prev.filter(d => d.id !== id));
+    toast({
+      title: "Removed from saved",
+      description: "Destination removed from your saved items"
+    });
+  };
+
+  const removeActivity = (id: number) => {
+    setSavedActivities(prev => prev.filter(a => a.id !== id));
+    toast({
+      title: "Removed from saved",
+      description: "Activity removed from your saved items"
+    });
+  };
 
   return (
     <MainLayout>
@@ -45,6 +63,7 @@ const Saved = () => {
                         size="icon"
                         variant="ghost"
                         className="absolute top-2 right-2 bg-white/80 hover:bg-white"
+                        onClick={() => removeDestination(destination.id)}
                       >
                         <X className="w-4 h-4" />
                       </Button>
@@ -91,7 +110,11 @@ const Saved = () => {
                       </div>
                       <div className="flex gap-2">
                         <Button size="sm" variant="outline">Add to Trip</Button>
-                        <Button size="icon" variant="ghost">
+                        <Button 
+                          size="icon" 
+                          variant="ghost"
+                          onClick={() => removeActivity(activity.id)}
+                        >
                           <X className="w-4 h-4" />
                         </Button>
                       </div>

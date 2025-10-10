@@ -59,6 +59,22 @@ const Itinerary = () => {
     );
   };
 
+  const handleDragStart = (activityId: number) => {
+    setDraggedItem(activityId);
+  };
+
+  const handleDragEnd = () => {
+    setDraggedItem(null);
+    toast({
+      title: "Activity reordered",
+      description: "Your itinerary has been updated"
+    });
+  };
+
+  const handleDragOver = (e: React.DragEvent) => {
+    e.preventDefault();
+  };
+
   return (
     <MainLayout>
       <div className="container max-w-4xl mx-auto px-4 py-6 space-y-6">

@@ -2,6 +2,7 @@ import { MainLayout } from "@/components/layout/MainLayout";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { MapPin, Sparkles, TrendingUp, Calendar } from "lucide-react";
+import ImageGallery from "../components/ImageGallery";
 
 const Index = () => {
   return (
@@ -12,6 +13,9 @@ const Index = () => {
           <h1 className="text-3xl font-bold">Welcome back!</h1>
           <p className="text-muted-foreground">Ready to plan your next adventure?</p>
         </div>
+        </div>
+
+
 
         {/* Quick Actions */}
         <div className="grid grid-cols-2 gap-4">
@@ -54,17 +58,17 @@ const Index = () => {
           </h2>
           
           <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
-            {["Paris", "Tokyo", "Bali", "New York", "Barcelona", "Dubai"].map((city) => (
-              <Card key={city} className="overflow-hidden hover-scale cursor-pointer">
-                <div className="aspect-video bg-gradient-to-br from-primary/20 to-accent/20"></div>
-                <div className="p-3">
-                  <h3 className="font-semibold">{city}</h3>
-                  <p className="text-xs text-muted-foreground">Explore now</p>
-                </div>
-              </Card>
-            ))}
-          </div>
-        </div>
+  {["Paris", "Tokyoo", "Bali", "New York", "Barcelona", "Dubai"].map((city) => (
+    <Card key={city} className="overflow-hidden hover-scale cursor-pointer">
+      <ImageGallery searchTerm={city} />
+      <div className="p-3">
+        <h3 className="font-semibold">{city}</h3>
+        <p className="text-xs text-muted-foreground">Explore now</p>
+      </div>
+    </Card>
+  ))}
+</div>
+
 
         {/* Upcoming Trips */}
         <div className="space-y-4">

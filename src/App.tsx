@@ -5,6 +5,8 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import Index from "./pages/Index";
 import Splash from "./pages/Splash";
+import Onboarding from "./pages/Onboarding";
+import Chat from "./pages/Chat";
 import Destinations from "./pages/Destinations";
 import Trips from "./pages/Trips";
 import Plan from "./pages/Plan";
@@ -26,7 +28,9 @@ const App = () => (
       <BrowserRouter>
         <Routes>
           <Route path="/splash" element={<Splash />} />
+          <Route path="/onboarding" element={<Onboarding />} />
           <Route path="/" element={<Index />} />
+          <Route path="/chat" element={<Chat />} />
           <Route path="/destinations" element={<Destinations />} />
           <Route path="/trips" element={<Trips />} />
           <Route path="/plan" element={<Plan />} />
@@ -36,8 +40,6 @@ const App = () => (
           <Route path="/saved" element={<Saved />} />
           <Route path="/settings" element={<Settings />} />
           <Route path="/help" element={<Help />} />
-          {/* Placeholder for chat - will be implemented in Phase 3 */}
-          <Route path="/chat" element={<Index />} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
         </Routes>

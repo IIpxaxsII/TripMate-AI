@@ -1,6 +1,6 @@
 import { Search, Bell, Menu } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { useNavigate } from "react-router-dom";
+import { Link } from "react-router-dom";
 import { NotificationBadge } from "@/components/notifications/NotificationBadge";
 
 interface TopBarProps {
@@ -8,7 +8,7 @@ interface TopBarProps {
 }
 
 export const TopBar = ({ onMenuClick }: TopBarProps) => {
-  const navigate = useNavigate();
+  
   const unreadCount = 2;
 
   return (
@@ -26,10 +26,12 @@ export const TopBar = ({ onMenuClick }: TopBarProps) => {
             variant="ghost" 
             size="icon" 
             className="text-muted-foreground relative"
-            onClick={() => navigate("/notifications")}
+            asChild
           >
-            <Bell className="w-5 h-5" />
-            <NotificationBadge count={unreadCount} />
+            <Link to="/notifications" aria-label="Open notifications">
+              <Bell className="w-5 h-5" />
+              <NotificationBadge count={unreadCount} />
+            </Link>
           </Button>
           <Button 
             variant="ghost" 

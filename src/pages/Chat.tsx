@@ -4,7 +4,6 @@ import { MessageBubble } from "@/components/chat/MessageBubble";
 import { ChatInput } from "@/components/chat/ChatInput";
 import { TypingIndicator } from "@/components/chat/TypingIndicator";
 import { SuggestedPrompts } from "@/components/chat/SuggestedPrompts";
-import { ScrollArea } from "@/components/ui/scroll-area";
 
 interface Message {
   id: string;
@@ -67,7 +66,7 @@ export default function Chat() {
           <p className="text-sm text-muted-foreground">Ask me anything about your travel plans</p>
         </div>
 
-        <ScrollArea className="flex-1 p-4">
+        <div className="flex-1 p-4 overflow-y-auto">
           <div className="space-y-4">
             {messages.map((message) => (
               <MessageBubble
@@ -80,7 +79,7 @@ export default function Chat() {
             {isTyping && <TypingIndicator />}
             <div ref={scrollRef} />
           </div>
-        </ScrollArea>
+        </div>
 
         {messages.length === 1 && (
           <div className="px-4 pb-4">

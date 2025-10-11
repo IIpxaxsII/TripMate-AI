@@ -1,5 +1,5 @@
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
-import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+
 import { RatingComponent } from "./RatingComponent";
 import { ThumbsUp } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -18,9 +18,9 @@ export const ReviewCard = ({ author, rating, date, content, helpful }: ReviewCar
       <CardHeader>
         <div className="flex items-start justify-between gap-4">
           <div className="flex items-start gap-3">
-            <Avatar>
-              <AvatarFallback>{author.charAt(0)}</AvatarFallback>
-            </Avatar>
+            <div className="h-10 w-10 rounded-full bg-muted flex items-center justify-center text-sm">
+              {author.charAt(0)}
+            </div>
             <div>
               <h4 className="font-semibold text-foreground">{author}</h4>
               <div className="flex items-center gap-2 mt-1">

@@ -3,7 +3,7 @@ import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+
 import { Badge } from "@/components/ui/badge";
 import { Camera, MapPin, Calendar, Award, Settings } from "lucide-react";
 import { Link } from "react-router-dom";
@@ -32,12 +32,15 @@ const Profile = () => {
         <Card className="p-6">
           <div className="flex flex-col sm:flex-row items-center sm:items-start gap-6">
             <div className="relative">
-              <Avatar className="w-24 h-24">
-                <AvatarImage src={user.avatar} />
-                <AvatarFallback className="text-2xl bg-primary text-primary-foreground">
-                  {user.name.split(" ").map(n => n[0]).join("")}
-                </AvatarFallback>
-              </Avatar>
+              <div className="w-24 h-24 rounded-full overflow-hidden bg-muted flex items-center justify-center">
+                {user.avatar ? (
+                  <img src={user.avatar} alt={`${user.name} avatar`} className="w-full h-full object-cover" />
+                ) : (
+                  <span className="text-2xl">
+                    {user.name.split(" ").map((n) => n[0]).join("")}
+                  </span>
+                )}
+              </div>
               <Button
                 size="icon"
                 variant="secondary"

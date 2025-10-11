@@ -1,5 +1,5 @@
 import { cn } from "@/lib/utils";
-import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+
 import { Bot, User } from "lucide-react";
 
 interface MessageBubbleProps {
@@ -11,11 +11,13 @@ interface MessageBubbleProps {
 export const MessageBubble = ({ text, isUser, timestamp }: MessageBubbleProps) => {
   return (
     <div className={cn("flex gap-3 animate-fade-in", isUser ? "flex-row-reverse" : "flex-row")}>
-      <Avatar className="h-8 w-8 mt-1">
-        <AvatarFallback className={cn(isUser ? "bg-primary" : "bg-secondary")}>
-          {isUser ? <User className="h-4 w-4 text-primary-foreground" /> : <Bot className="h-4 w-4 text-secondary-foreground" />}
-        </AvatarFallback>
-      </Avatar>
+      <div className="h-8 w-8 mt-1 rounded-full flex items-center justify-center bg-secondary">
+        {isUser ? (
+          <User className="h-4 w-4 text-secondary-foreground" />
+        ) : (
+          <Bot className="h-4 w-4 text-secondary-foreground" />
+        )}
+      </div>
       
       <div className={cn("flex flex-col max-w-[75%]", isUser ? "items-end" : "items-start")}>
         <div

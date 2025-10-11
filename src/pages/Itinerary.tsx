@@ -5,6 +5,7 @@ import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { toast } from "@/hooks/use-toast";
 import { 
   MapPin, Clock, DollarSign, Edit, Share2, Download, 
   Plus, CheckCircle2, Circle, ChevronDown, ChevronUp 
@@ -14,6 +15,7 @@ import { cn } from "@/lib/utils";
 const Itinerary = () => {
   const { tripId } = useParams();
   const [expandedDays, setExpandedDays] = useState<number[]>([1]);
+  const [draggedItem, setDraggedItem] = useState<number | null>(null);
 
   const trip = {
     name: "Paris Adventure",

@@ -2,9 +2,21 @@ import { MainLayout } from "@/components/layout/MainLayout";
 import { Card } from "@/components/ui/card";
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
-import { Bell, Globe, Moon, Lock, CreditCard } from "lucide-react";
+import { Bell, Globe, Moon, Lock, CreditCard, LogOut } from "lucide-react";
+import { useAuth } from "@/contexts/AuthContext";
+import { useNavigate } from "react-router-dom";
 
 const Settings = () => {
+  const { signOut } = useAuth();
+  const navigate = useNavigate();
+
+  const handleSignOut = async () => {
+    if (confirm('Are you sure you want to sign out?')) {
+      await signOut();
+      navigate('/auth');
+    }
+  };
+
   return (
     <MainLayout>
       <div className="container max-w-2xl mx-auto px-4 py-6 space-y-6">
@@ -94,6 +106,16 @@ const Settings = () => {
               </div>
               <span className="text-sm text-accent font-medium">Active</span>
             </div>
+          </div>
+
+          <div className="border-t pt-6">
+            <button
+              onClick={handleSignOut}
+              className="w-full h-10 px-4 py-2 bg-destructive text-destructive-foreground rounded-md hover:bg-destructive/90 font-medium flex items-center justify-center gap-2"
+            >
+              <LogOut className="w-4 h-4" />
+              Sign Out
+            </button>
           </div>
         </Card>
       </div>

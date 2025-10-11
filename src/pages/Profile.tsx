@@ -1,160 +1,208 @@
-import { MainLayout } from "@/components/layout/MainLayout";
-import { Card } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
+import { useEffect, useState } from 'react';
+import { MainLayout } from '@/components/layout/MainLayout';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Avatar, AvatarFallback } from '@/components/ui/avatar';
+import { Badge } from '@/components/ui/badge';
+import { MapPin, Calendar, Award, Settings as SettingsIcon, Edit } from 'lucide-react';
+import { Link } from 'react-router-dom';
+import { useAuth } from '@/contexts/AuthContext';
+import { supabase } from '@/integrations/supabase/client';
+import { toast } from '@/hooks/use-toast';
 
-import { Badge } from "@/components/ui/badge";
-import { Camera, MapPin, Calendar, Award, Settings } from "lucide-react";
-import { Link } from "react-router-dom";
+interface ProfileData {
+  full_name: string;
+  email: string;
+  location: string;
+  bio: string;
+  travel_style: string;
+  created_at: string;
+}
 
-const Profile = () => {
-  const user = {
-    name: "Alex Johnson",
-    email: "alex.johnson@email.com",
-    avatar: "",
-    memberSince: "January 2025",
-    location: "San Francisco, CA",
-    tripsCount: 12,
-    countriesVisited: 8,
+export default function Profile() {
+  const { user } = useAuth();
+  const [profile, setProfile] = useState<ProfileData | null>(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    if (user) {
+      loadProfile();
+    }
+  }, [user]);
+
+  const loadProfile = async () => {
+    if (!user) return;
+    
+    try {
+      const { data, error } = await supabase
+        .from('profiles')
+        .select('*')
+        .eq('id', user.id)
+        .single();
+
+      if (error) throw error;
+      
+      setProfile(data);
+    } catch (error: any) {
+      toast({
+        variant: "destructive",
+        title: "Error loading profile",
+        description: error.message
+      });
+    } finally {
+      setLoading(false);
+    }
   };
 
-  const badges = [
-    { name: "Explorer", icon: "🌍", description: "Visited 5+ countries" },
-    { name: "Adventurer", icon: "⛰️", description: "Completed 10 trips" },
-    { name: "Culture Seeker", icon: "🎨", description: "Museum enthusiast" },
-  ];
+  const getInitials = (name: string) => {
+    return name
+      .split(' ')
+      .map(n => n[0])
+      .join('')
+      .toUpperCase()
+      .slice(0, 2);
+  };
+
+  const formatDate = (dateString: string) => {
+    return new Date(dateString).toLocaleDateString('en-US', {
+      month: 'long',
+      year: 'numeric'
+    });
+  };
+
+  if (loading) {
+    return (
+      <MainLayout>
+        <div className="flex items-center justify-center min-h-[60vh]">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
+        </div>
+      </MainLayout>
+    );
+  }
 
   return (
     <MainLayout>
-      <div className="container max-w-3xl mx-auto px-4 py-6 space-y-6">
+      <div className="max-w-4xl mx-auto p-4 space-y-6">
         {/* Profile Header */}
-        <Card className="p-6">
-          <div className="flex flex-col sm:flex-row items-center sm:items-start gap-6">
-            <div className="relative">
-              <div className="w-24 h-24 rounded-full overflow-hidden bg-muted flex items-center justify-center">
-                {user.avatar ? (
-                  <img src={user.avatar} alt={`${user.name} avatar`} className="w-full h-full object-cover" />
-                ) : (
-                  <span className="text-2xl">
-                    {user.name.split(" ").map((n) => n[0]).join("")}
-                  </span>
-                )}
-              </div>
-              <Button
-                size="icon"
-                variant="secondary"
-                className="absolute bottom-0 right-0 rounded-full w-8 h-8"
-              >
-                <Camera className="w-4 h-4" />
-              </Button>
-            </div>
-
-            <div className="flex-1 text-center sm:text-left">
-              <h1 className="text-2xl font-bold mb-1">{user.name}</h1>
-              <p className="text-muted-foreground mb-4">{user.email}</p>
+        <Card>
+          <CardContent className="pt-6">
+            <div className="flex flex-col sm:flex-row items-center gap-6">
+              <Avatar className="w-24 h-24">
+                <AvatarFallback className="text-2xl bg-primary text-primary-foreground">
+                  {profile?.full_name ? getInitials(profile.full_name) : 'U'}
+                </AvatarFallback>
+              </Avatar>
               
-              <div className="flex flex-wrap gap-4 justify-center sm:justify-start text-sm">
-                <div className="flex items-center gap-1 text-muted-foreground">
-                  <MapPin className="w-4 h-4" />
-                  <span>{user.location}</span>
-                </div>
-                <div className="flex items-center gap-1 text-muted-foreground">
+              <div className="flex-1 text-center sm:text-left">
+                <h1 className="text-2xl font-bold">{profile?.full_name || 'User'}</h1>
+                <p className="text-muted-foreground">{profile?.email || user?.email}</p>
+                {profile?.location && (
+                  <div className="flex items-center gap-1 text-sm text-muted-foreground mt-2 justify-center sm:justify-start">
+                    <MapPin className="w-4 h-4" />
+                    {profile.location}
+                  </div>
+                )}
+                <div className="flex items-center gap-1 text-sm text-muted-foreground mt-1 justify-center sm:justify-start">
                   <Calendar className="w-4 h-4" />
-                  <span>Member since {user.memberSince}</span>
+                  Member since {profile?.created_at ? formatDate(profile.created_at) : 'Recently'}
                 </div>
+              </div>
+
+              <div className="flex gap-2">
+                <Link
+                  to="/profile/edit"
+                  className="h-10 w-10 rounded-md bg-background hover:bg-accent flex items-center justify-center border"
+                >
+                  <Edit className="w-4 h-4" />
+                </Link>
+                <Link
+                  to="/settings"
+                  className="h-10 w-10 rounded-md bg-background hover:bg-accent flex items-center justify-center border"
+                >
+                  <SettingsIcon className="w-4 h-4" />
+                </Link>
               </div>
             </div>
 
-            <Button variant="outline" asChild>
-              <Link to="/settings">
-                <Settings className="w-4 h-4 mr-2" />
-                Settings
-              </Link>
-            </Button>
-          </div>
+            {profile?.bio && (
+              <div className="mt-6 pt-6 border-t">
+                <p className="text-sm text-muted-foreground">{profile.bio}</p>
+              </div>
+            )}
+          </CardContent>
         </Card>
 
         {/* Stats */}
-        <div className="grid grid-cols-2 gap-4">
-          <Card className="p-6 text-center">
-            <div className="text-3xl font-bold text-primary mb-1">{user.tripsCount}</div>
-            <div className="text-sm text-muted-foreground">Trips Completed</div>
+        <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
+          <Card>
+            <CardHeader className="pb-3">
+              <CardTitle className="text-sm font-medium text-muted-foreground">
+                Trips Completed
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold">0</div>
+            </CardContent>
           </Card>
-          <Card className="p-6 text-center">
-            <div className="text-3xl font-bold text-primary mb-1">{user.countriesVisited}</div>
-            <div className="text-sm text-muted-foreground">Countries Visited</div>
+          
+          <Card>
+            <CardHeader className="pb-3">
+              <CardTitle className="text-sm font-medium text-muted-foreground">
+                Countries Visited
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold">0</div>
+            </CardContent>
+          </Card>
+
+          <Card className="col-span-2 sm:col-span-1">
+            <CardHeader className="pb-3">
+              <CardTitle className="text-sm font-medium text-muted-foreground">
+                Travel Style
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <Badge variant="secondary">{profile?.travel_style || 'Not set'}</Badge>
+            </CardContent>
           </Card>
         </div>
 
         {/* Achievements */}
-        <Card className="p-6">
-          <h2 className="text-xl font-semibold mb-4 flex items-center gap-2">
-            <Award className="w-5 h-5 text-primary" />
-            Achievements
-          </h2>
-          <div className="grid sm:grid-cols-3 gap-4">
-            {badges.map((badge) => (
-              <div
-                key={badge.name}
-                className="flex flex-col items-center text-center p-4 rounded-lg bg-accent/10 hover-scale cursor-pointer"
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Award className="w-5 h-5" />
+              Achievements
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="text-center py-8 text-muted-foreground">
+              <Award className="w-12 h-12 mx-auto mb-2 opacity-50" />
+              <p>Complete your first trip to unlock achievements!</p>
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Travel Preferences */}
+        <Card>
+          <CardHeader>
+            <div className="flex items-center justify-between">
+              <CardTitle>Travel Preferences</CardTitle>
+              <Link
+                to="/preferences"
+                className="text-sm text-primary hover:underline"
               >
-                <div className="text-4xl mb-2">{badge.icon}</div>
-                <h3 className="font-semibold mb-1">{badge.name}</h3>
-                <p className="text-xs text-muted-foreground">{badge.description}</p>
-              </div>
-            ))}
-          </div>
-        </Card>
-
-        {/* Personal Information */}
-        <Card className="p-6">
-          <div className="flex items-center justify-between mb-4">
-            <h2 className="text-xl font-semibold">Personal Information</h2>
-            <Button variant="ghost" size="sm">Edit</Button>
-          </div>
-          
-          <div className="space-y-4">
-            <div className="grid sm:grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <Label htmlFor="firstName">First Name</Label>
-                <Input id="firstName" defaultValue="Alex" disabled />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="lastName">Last Name</Label>
-                <Input id="lastName" defaultValue="Johnson" disabled />
-              </div>
+                Manage
+              </Link>
             </div>
-            
-            <div className="space-y-2">
-              <Label htmlFor="email">Email</Label>
-              <Input id="email" type="email" defaultValue={user.email} disabled />
-            </div>
-            
-            <div className="space-y-2">
-              <Label htmlFor="location">Location</Label>
-              <Input id="location" defaultValue={user.location} disabled />
-            </div>
-          </div>
-        </Card>
-
-        {/* Travel Preferences Link */}
-        <Card className="p-6">
-          <div className="flex items-center justify-between">
-            <div>
-              <h3 className="font-semibold mb-1">Travel Preferences</h3>
-              <p className="text-sm text-muted-foreground">
-                Customize your travel style and interests
-              </p>
-            </div>
-            <Button variant="outline" asChild>
-              <Link to="/preferences">Manage</Link>
-            </Button>
-          </div>
+          </CardHeader>
+          <CardContent>
+            <p className="text-sm text-muted-foreground">
+              Customize your travel preferences to get personalized recommendations
+            </p>
+          </CardContent>
         </Card>
       </div>
     </MainLayout>
   );
-};
-
-export default Profile;
+}

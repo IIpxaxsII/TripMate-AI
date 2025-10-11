@@ -2,7 +2,6 @@ import { useState } from "react";
 import { MainLayout } from "@/components/layout/MainLayout";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
-import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Search, SlidersHorizontal, Grid3x3, List, Star, Heart, MapPin } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -45,27 +44,23 @@ const Destinations = () => {
             />
           </div>
           <div className="flex gap-2">
-            <Button variant="outline" className="gap-2">
+            <button className="border rounded-md bg-background hover:bg-accent hover:text-accent-foreground h-10 px-4 py-2 text-sm font-medium flex items-center gap-2">
               <SlidersHorizontal className="w-4 h-4" />
               Filters
-            </Button>
+            </button>
             <div className="flex rounded-lg border">
-              <Button
-                variant="ghost"
-                size="icon"
-                className={cn(viewMode === "grid" && "bg-accent")}
+              <button
+                className={cn("h-10 w-10 rounded-md hover:bg-accent flex items-center justify-center", viewMode === "grid" && "bg-accent")}
                 onClick={() => setViewMode("grid")}
               >
                 <Grid3x3 className="w-4 h-4" />
-              </Button>
-              <Button
-                variant="ghost"
-                size="icon"
-                className={cn(viewMode === "list" && "bg-accent")}
+              </button>
+              <button
+                className={cn("h-10 w-10 rounded-md hover:bg-accent flex items-center justify-center", viewMode === "list" && "bg-accent")}
                 onClick={() => setViewMode("list")}
               >
                 <List className="w-4 h-4" />
-              </Button>
+              </button>
             </div>
           </div>
         </div>
@@ -100,13 +95,9 @@ const Destinations = () => {
                 "bg-gradient-to-br from-primary/20 to-accent/20 relative",
                 viewMode === "grid" ? "aspect-video" : "w-48 flex-shrink-0"
               )}>
-                <Button
-                  size="icon"
-                  variant="ghost"
-                  className="absolute top-2 right-2 bg-white/80 hover:bg-white"
-                >
+                <button className="absolute top-2 right-2 h-10 w-10 rounded-md bg-white/80 hover:bg-white flex items-center justify-center">
                   <Heart className="w-4 h-4" />
-                </Button>
+                </button>
                 <div className="absolute inset-0 flex items-center justify-center">
                   <MapPin className="w-12 h-12 text-primary/40" />
                 </div>

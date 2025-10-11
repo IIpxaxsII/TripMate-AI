@@ -1,17 +1,16 @@
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
-import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { lazy, Suspense } from "react";
 import { Skeleton } from "@/components/ui/skeleton";
 import Index from "./pages/Index";
 import Splash from "./pages/Splash";
+import Destinations from "./pages/Destinations";
 
 // Lazy load pages for better performance
 const Onboarding = lazy(() => import("./pages/Onboarding"));
 const Chat = lazy(() => import("./pages/Chat"));
-const Destinations = lazy(() => import("./pages/Destinations"));
 const Trips = lazy(() => import("./pages/Trips"));
 const Plan = lazy(() => import("./pages/Plan"));
 const Itinerary = lazy(() => import("./pages/Itinerary"));
@@ -35,10 +34,9 @@ const PageLoader = () => (
 
 const App = () => (
   <QueryClientProvider client={queryClient}>
-    <TooltipProvider>
-      <Toaster />
-      <Sonner />
-      <BrowserRouter>
+    <Toaster />
+    <Sonner />
+    <BrowserRouter>
         <Suspense fallback={<PageLoader />}>
           <Routes>
             <Route path="/splash" element={<Splash />} />
@@ -60,7 +58,6 @@ const App = () => (
           </Routes>
         </Suspense>
       </BrowserRouter>
-    </TooltipProvider>
   </QueryClientProvider>
 );
 

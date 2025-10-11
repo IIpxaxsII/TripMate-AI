@@ -1,11 +1,6 @@
-import { Bookmark, Settings, HelpCircle, Share2, MessageSquare, LogOut } from "lucide-react";
+import { Bookmark, Settings, HelpCircle, Share2, MessageSquare, LogOut, X } from "lucide-react";
 import { Link } from "react-router-dom";
-import {
-  Sheet,
-  SheetContent,
-  SheetHeader,
-  SheetTitle,
-} from "@/components/ui/sheet";
+import { Button } from "@/components/ui/button";
 
 interface HamburgerMenuProps {
   open: boolean;
@@ -22,14 +17,30 @@ const menuItems = [
 ];
 
 export const HamburgerMenu = ({ open, onOpenChange }: HamburgerMenuProps) => {
+  if (!open) return null;
+
   return (
-    <Sheet open={open} onOpenChange={onOpenChange}>
-      <SheetContent side="right" className="w-80">
-        <SheetHeader>
-          <SheetTitle>Menu</SheetTitle>
-        </SheetHeader>
+    <>
+      {/* Overlay */}
+      <div 
+        className="fixed inset-0 bg-black/50 z-40 animate-fade-in"
+        onClick={() => onOpenChange(false)}
+      />
+      
+      {/* Slide-in Menu */}
+      <div className="fixed right-0 top-0 h-full w-80 bg-background border-l z-50 animate-slide-in-right">
+        <div className="flex items-center justify-between p-4 border-b">
+          <h2 className="text-lg font-semibold">Menu</h2>
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={() => onOpenChange(false)}
+          >
+            <X className="w-5 h-5" />
+          </Button>
+        </div>
         
-        <nav className="flex flex-col gap-1 mt-6">
+        <nav className="flex flex-col gap-1 mt-6 px-4">
           {menuItems.map(({ icon: Icon, label, path }) => (
             <Link
               key={path}
@@ -49,7 +60,7 @@ export const HamburgerMenu = ({ open, onOpenChange }: HamburgerMenuProps) => {
             <span className="font-medium">Logout</span>
           </button>
         </nav>
-      </SheetContent>
-    </Sheet>
+      </div>
+    </>
   );
 };

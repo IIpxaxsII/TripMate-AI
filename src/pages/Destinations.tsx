@@ -1,10 +1,10 @@
 import { useState } from "react";
 import { MainLayout } from "@/components/layout/MainLayout";
-import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
-import { Search, SlidersHorizontal, Grid3x3, List, Star, Heart, MapPin } from "lucide-react";
+import { Search, SlidersHorizontal, Grid3x3, List } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { DestinationCard } from "@/components/destinations/DestinationCard";
 
 const Destinations = () => {
   const [viewMode, setViewMode] = useState<"grid" | "list">("grid");
@@ -13,15 +13,20 @@ const Destinations = () => {
   const categories = ["All", "Beach", "Mountain", "City", "Adventure", "Culture", "Romantic"];
   
   const destinations = [
-    { id: 1, name: "Paris", country: "France", rating: 4.8, price: "$$$", image: "paris", category: "Culture" },
-    { id: 2, name: "Tokyo", country: "Japan", rating: 4.9, price: "$$$$", image: "tokyo", category: "City" },
-    { id: 3, name: "Bali", country: "Indonesia", rating: 4.7, price: "$$", image: "bali", category: "Beach" },
-    { id: 4, name: "New York", country: "USA", rating: 4.6, price: "$$$", image: "newyork", category: "City" },
-    { id: 5, name: "Barcelona", country: "Spain", rating: 4.8, price: "$$$", image: "barcelona", category: "Culture" },
-    { id: 6, name: "Dubai", country: "UAE", rating: 4.7, price: "$$$$", image: "dubai", category: "City" },
-    { id: 7, name: "Santorini", country: "Greece", rating: 4.9, price: "$$$", image: "santorini", category: "Romantic" },
-    { id: 8, name: "Machu Picchu", country: "Peru", rating: 4.8, price: "$$$", image: "machu", category: "Adventure" },
+    { id: 1, name: "Paris", country: "France", rating: 4.8, price: "$$$", category: "Culture" },
+    { id: 2, name: "Tokyo", country: "Japan", rating: 4.9, price: "$$$$", category: "City" },
+    { id: 3, name: "Bali", country: "Indonesia", rating: 4.7, price: "$$", category: "Beach" },
+    { id: 4, name: "New York", country: "USA", rating: 4.6, price: "$$$", category: "City" },
+    { id: 5, name: "Barcelona", country: "Spain", rating: 4.8, price: "$$$", category: "Culture" },
+    { id: 6, name: "Dubai", country: "UAE", rating: 4.7, price: "$$$$", category: "City" },
+    { id: 7, name: "Santorini", country: "Greece", rating: 4.9, price: "$$$", category: "Romantic" },
+    { id: 8, name: "Machu Picchu", country: "Peru", rating: 4.8, price: "$$$", category: "Adventure" },
   ];
+
+  const filteredDestinations = destinations.filter((dest) =>
+    dest.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    dest.country.toLowerCase().includes(searchQuery.toLowerCase())
+  );
 
   return (
     <MainLayout>
@@ -83,49 +88,19 @@ const Destinations = () => {
           "grid gap-4",
           viewMode === "grid" ? "grid-cols-1 sm:grid-cols-2 lg:grid-cols-3" : "grid-cols-1"
         )}>
-          {destinations.map((destination) => (
-            <Card
-              key={destination.id}
-              className={cn(
-                "overflow-hidden hover-scale cursor-pointer group",
-                viewMode === "list" && "flex flex-row"
-              )}
-            >
-              <div className={cn(
-                "bg-gradient-to-br from-primary/20 to-accent/20 relative",
-                viewMode === "grid" ? "aspect-video" : "w-48 flex-shrink-0"
-              )}>
-                <button className="absolute top-2 right-2 h-10 w-10 rounded-md bg-white/80 hover:bg-white flex items-center justify-center">
-                  <Heart className="w-4 h-4" />
-                </button>
-                <div className="absolute inset-0 flex items-center justify-center">
-                  <MapPin className="w-12 h-12 text-primary/40" />
-                </div>
-              </div>
-              
-              <div className={cn("p-4", viewMode === "list" && "flex-1")}>
-                <div className="flex items-start justify-between mb-2">
-                  <div>
-                    <h3 className="font-semibold text-lg group-hover:text-primary transition-colors">
-                      {destination.name}
-                    </h3>
-                    <p className="text-sm text-muted-foreground">{destination.country}</p>
-                  </div>
-                  <Badge variant="secondary">{destination.category}</Badge>
-                </div>
-                
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-1">
-                    <Star className="w-4 h-4 fill-secondary text-secondary" />
-                    <span className="text-sm font-medium">{destination.rating}</span>
-                  </div>
-                  <span className="text-sm font-medium text-muted-foreground">
-                    {destination.price}
-                  </span>
-                </div>
-              </div>
-            </Card>
-          ))}
+          {filteredDestinations.length > 0 ? (
+            filteredDestinations.map((destination) => (
+              <DestinationCard
+                key={destination.id}
+                destination={destination}
+                viewMode={viewMode}
+              />
+            ))
+          ) : (
+            <div className="col-span-full text-center py-12">
+              <p className="text-muted-foreground text-lg">No destinations found matching "{searchQuery}"</p>
+            </div>
+          )}
         </div>
       </div>
     </MainLayout>

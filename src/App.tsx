@@ -2,6 +2,8 @@ import { Toaster } from "@/components/ui/toaster";
 import { HashRouter, Routes, Route } from "react-router-dom";
 import { AuthProvider } from "./contexts/AuthContext";
 import { ProtectedRoute } from "./components/auth/ProtectedRoute";
+import { OfflineIndicator } from "./components/pwa/OfflineIndicator";
+import { InstallPrompt } from "./components/pwa/InstallPrompt";
 import Index from "./pages/Index";
 import Splash from "./pages/Splash";
 import Destinations from "./pages/Destinations";
@@ -25,6 +27,8 @@ import NotFound from "./pages/NotFound";
 const App = () => (
   <HashRouter>
     <AuthProvider>
+      <OfflineIndicator />
+      <InstallPrompt />
       <Routes>
         <Route path="/splash" element={<Splash />} />
         <Route path="/onboarding" element={<Onboarding />} />

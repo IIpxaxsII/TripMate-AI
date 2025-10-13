@@ -7,6 +7,7 @@ import { SuggestedPrompts } from "@/components/chat/SuggestedPrompts";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "@/hooks/use-toast";
+import { measurePerformance } from "@/utils/performanceOptimization";
 
 interface Message {
   id: string;
@@ -78,30 +79,32 @@ export default function Chat() {
     setIsTyping(true);
 
     try {
-      // Prepare messages for API (exclude the welcome message)
-      const apiMessages = [...messages.slice(1), newMessage].map(msg => ({
-        role: msg.isUser ? 'user' : 'assistant',
-        content: msg.text
-      }));
+      await measurePerformance('AI Chat Response', async () => {
+        // Prepare messages for API (exclude the welcome message)
+        const apiMessages = [...messages.slice(1), newMessage].map(msg => ({
+          role: msg.isUser ? 'user' : 'assistant',
+          content: msg.text
+        }));
 
-      // Call the edge function
-      const { data, error } = await supabase.functions.invoke('ai-chat', {
-        body: {
-          messages: apiMessages,
-          conversationId
-        }
+        // Call the edge function
+        const { data, error } = await supabase.functions.invoke('ai-chat', {
+          body: {
+            messages: apiMessages,
+            conversationId
+          }
+        });
+
+        if (error) throw error;
+
+        const aiResponse: Message = {
+          id: (Date.now() + 1).toString(),
+          text: data.message,
+          isUser: false,
+          timestamp: new Date(),
+        };
+        
+        setMessages((prev) => [...prev, aiResponse]);
       });
-
-      if (error) throw error;
-
-      const aiResponse: Message = {
-        id: (Date.now() + 1).toString(),
-        text: data.message,
-        isUser: false,
-        timestamp: new Date(),
-      };
-      
-      setMessages((prev) => [...prev, aiResponse]);
     } catch (error) {
       console.error('Error sending message:', error);
       toast({

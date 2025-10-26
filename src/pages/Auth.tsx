@@ -84,19 +84,35 @@ export default function Auth() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-primary/10 via-background to-accent/10 p-4">
-      <div className="w-full max-w-md">
+    <div className="min-h-screen flex items-center justify-center relative overflow-hidden p-4">
+      {/* Animated gradient background */}
+      <div className="absolute inset-0 bg-gradient-to-br from-primary/20 via-background to-accent/20 animate-gradient" />
+      
+      {/* Travel-themed decorative elements */}
+      <div className="absolute inset-0 opacity-[0.03]" style={{
+        backgroundImage: `url("data:image/svg+xml,%3Csvg width='100' height='100' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M50 10 L90 50 L50 90 L10 50 Z M30 50 L50 30 L70 50 L50 70 Z' fill='%231E3A8A' opacity='0.1'/%3E%3C/svg%3E")`,
+        backgroundSize: '100px 100px'
+      }} />
+      
+      {/* Floating orbs for depth */}
+      <div className="absolute top-20 left-20 w-64 h-64 bg-primary/10 rounded-full blur-3xl animate-pulse" />
+      <div className="absolute bottom-20 right-20 w-96 h-96 bg-accent/10 rounded-full blur-3xl animate-pulse" style={{ animationDelay: '1s' }} />
+      
+      <div className="w-full max-w-md relative z-10">
         <div className="text-center mb-8">
-          <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-primary mb-4">
+          <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-gradient-to-br from-primary to-primary/80 mb-4 shadow-lg shadow-primary/30 animate-float">
             <Plane className="w-8 h-8 text-primary-foreground" />
           </div>
-          <h1 className="text-3xl font-bold text-foreground">TripMate AI</h1>
+          <h1 className="text-3xl font-bold text-foreground bg-clip-text">TripMate AI</h1>
           <p className="text-muted-foreground mt-2">Your AI-powered travel companion</p>
         </div>
 
-        <Card>
-          <CardHeader>
-            <CardTitle>Welcome</CardTitle>
+        <Card className="backdrop-blur-sm bg-card/95 shadow-2xl shadow-primary/20 border-primary/20 relative overflow-hidden">
+          {/* Subtle glow effect */}
+          <div className="absolute inset-0 bg-gradient-to-br from-primary/5 via-transparent to-accent/5 pointer-events-none" />
+          
+          <CardHeader className="relative z-10">
+            <CardTitle className="text-2xl">Welcome</CardTitle>
             <CardDescription>Sign in to your account or create a new one</CardDescription>
           </CardHeader>
           <CardContent>
@@ -137,7 +153,7 @@ export default function Auth() {
                   <button
                     type="submit"
                     disabled={loading}
-                    className="w-full h-10 px-4 py-2 bg-primary text-primary-foreground rounded-md hover:bg-primary/90 disabled:opacity-50 font-medium"
+                    className="w-full h-10 px-4 py-2 bg-gradient-to-r from-primary to-primary/90 text-primary-foreground rounded-md hover:shadow-lg hover:shadow-primary/30 disabled:opacity-50 font-medium transition-all duration-300 hover:scale-[1.02]"
                   >
                     {loading ? 'Signing in...' : 'Sign In'}
                   </button>
@@ -185,7 +201,7 @@ export default function Auth() {
                   <button
                     type="submit"
                     disabled={loading}
-                    className="w-full h-10 px-4 py-2 bg-primary text-primary-foreground rounded-md hover:bg-primary/90 disabled:opacity-50 font-medium"
+                    className="w-full h-10 px-4 py-2 bg-gradient-to-r from-primary to-primary/90 text-primary-foreground rounded-md hover:shadow-lg hover:shadow-primary/30 disabled:opacity-50 font-medium transition-all duration-300 hover:scale-[1.02]"
                   >
                     {loading ? 'Creating account...' : 'Create Account'}
                   </button>

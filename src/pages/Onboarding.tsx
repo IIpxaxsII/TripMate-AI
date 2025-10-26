@@ -1,4 +1,4 @@
-import { useState } from "react";
+import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { WelcomeScreen } from "@/components/onboarding/WelcomeScreen";
 import { PreferenceSelector } from "@/components/onboarding/PreferenceSelector";

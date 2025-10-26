@@ -1,4 +1,4 @@
-import { useState } from "react";
+import React, { useState } from "react";
 import { MainLayout } from "@/components/layout/MainLayout";
 import { NotificationList } from "@/components/notifications/NotificationList";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";

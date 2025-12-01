@@ -1,9 +1,10 @@
-import React, { useState } from "react";
+import React, { useState, useMemo } from "react";
 import { MainLayout } from "@/components/layout/MainLayout";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
+import { Skeleton } from "@/components/ui/skeleton";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
   DropdownMenu,
@@ -13,18 +14,47 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Plus, Search, Calendar, MapPin, MoreVertical, Edit, Trash, Share2 } from "lucide-react";
 import { Link } from "react-router-dom";
+import { useTrips, type Trip } from "@/hooks/useTrips";
 
 const Trips = () => {
   const [searchQuery, setSearchQuery] = useState("");
+  const { data: trips = [], isLoading } = useTrips();
 
-  const upcomingTrips = [
-    { id: 1, name: "Paris Adventure", destination: "Paris, France", startDate: "2025-11-15", endDate: "2025-11-22", status: "confirmed" },
-    { id: 2, name: "Tokyo Discovery", destination: "Tokyo, Japan", startDate: "2025-12-01", endDate: "2025-12-10", status: "draft" },
-  ];
+  // Filter trips by search query
+  const filteredTrips = useMemo(() => {
+    if (!searchQuery.trim()) return trips;
+    const query = searchQuery.toLowerCase();
+    return trips.filter(trip => 
+      trip.title.toLowerCase().includes(query) ||
+      trip.description?.toLowerCase().includes(query)
+    );
+  }, [trips, searchQuery]);
 
-  const pastTrips = [
-    { id: 3, name: "Bali Retreat", destination: "Bali, Indonesia", startDate: "2025-08-10", endDate: "2025-08-20", status: "completed" },
-  ];
+  // Separate upcoming and past trips
+  const { upcomingTrips, pastTrips } = useMemo(() => {
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+
+    const upcoming: Trip[] = [];
+    const past: Trip[] = [];
+
+    filteredTrips.forEach(trip => {
+      if (trip.end_date) {
+        const endDate = new Date(trip.end_date);
+        endDate.setHours(0, 0, 0, 0);
+        if (endDate >= today) {
+          upcoming.push(trip);
+        } else {
+          past.push(trip);
+        }
+      } else {
+        // If no end date, consider it upcoming
+        upcoming.push(trip);
+      }
+    });
+
+    return { upcomingTrips: upcoming, pastTrips: past };
+  }, [filteredTrips]);
 
   const getStatusColor = (status: string) => {
     switch (status) {
@@ -35,20 +65,19 @@ const Trips = () => {
     }
   };
 
-  const TripCard = ({ trip }: { trip: any }) => (
+  const TripCard = ({ trip }: { trip: Trip }) => (
     <Card className="p-4 hover-scale cursor-pointer">
       <div className="flex items-start justify-between mb-3">
         <div className="flex-1">
           <div className="flex items-center gap-2 mb-1">
-            <h3 className="font-semibold text-lg">{trip.name}</h3>
-            <Badge className={getStatusColor(trip.status)}>
-              {trip.status}
+            <h3 className="font-semibold text-lg">{trip.title}</h3>
+            <Badge className={getStatusColor(trip.status || 'draft')}>
+              {trip.status || 'draft'}
             </Badge>
           </div>
-          <div className="flex items-center gap-1 text-sm text-muted-foreground">
-            <MapPin className="w-4 h-4" />
-            <span>{trip.destination}</span>
-          </div>
+          {trip.description && (
+            <p className="text-sm text-muted-foreground line-clamp-1">{trip.description}</p>
+          )}
         </div>
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
@@ -73,14 +102,17 @@ const Trips = () => {
         </DropdownMenu>
       </div>
 
-      <div className="flex items-center gap-2 text-sm">
-        <Calendar className="w-4 h-4 text-muted-foreground" />
-        <span>
-          {new Date(trip.startDate).toLocaleDateString()} - {new Date(trip.endDate).toLocaleDateString()}
-        </span>
-      </div>
+      {(trip.start_date || trip.end_date) && (
+        <div className="flex items-center gap-2 text-sm mb-3">
+          <Calendar className="w-4 h-4 text-muted-foreground" />
+          <span>
+            {trip.start_date ? new Date(trip.start_date).toLocaleDateString() : 'TBD'}
+            {trip.end_date && ` - ${new Date(trip.end_date).toLocaleDateString()}`}
+          </span>
+        </div>
+      )}
 
-      <div className="mt-4 flex gap-2">
+      <div className="flex gap-2">
         <Button variant="outline" size="sm" className="flex-1" asChild>
           <Link to={`/itinerary/${trip.id}`}>View Itinerary</Link>
         </Button>
@@ -124,7 +156,16 @@ const Trips = () => {
           </TabsList>
 
           <TabsContent value="upcoming" className="space-y-4">
-            {upcomingTrips.length > 0 ? (
+            {isLoading ? (
+              // Loading skeletons
+              Array.from({ length: 3 }).map((_, i) => (
+                <Card key={i} className="p-4">
+                  <Skeleton className="h-6 w-2/3 mb-2" />
+                  <Skeleton className="h-4 w-1/2 mb-4" />
+                  <Skeleton className="h-10 w-full" />
+                </Card>
+              ))
+            ) : upcomingTrips.length > 0 ? (
               upcomingTrips.map(trip => <TripCard key={trip.id} trip={trip} />)
             ) : (
               <Card className="p-8 text-center">
@@ -137,7 +178,16 @@ const Trips = () => {
           </TabsContent>
 
           <TabsContent value="past" className="space-y-4">
-            {pastTrips.length > 0 ? (
+            {isLoading ? (
+              // Loading skeletons
+              Array.from({ length: 2 }).map((_, i) => (
+                <Card key={i} className="p-4">
+                  <Skeleton className="h-6 w-2/3 mb-2" />
+                  <Skeleton className="h-4 w-1/2 mb-4" />
+                  <Skeleton className="h-10 w-full" />
+                </Card>
+              ))
+            ) : pastTrips.length > 0 ? (
               pastTrips.map(trip => <TripCard key={trip.id} trip={trip} />)
             ) : (
               <Card className="p-8 text-center">

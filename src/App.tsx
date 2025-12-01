@@ -8,6 +8,7 @@ import { InstallPrompt } from "./components/pwa/InstallPrompt";
 import Index from "./pages/Index";
 import Splash from "./pages/Splash";
 import Destinations from "./pages/Destinations";
+import DestinationDetail from "./pages/DestinationDetail";
 import Onboarding from "./pages/Onboarding";
 import Auth from "./pages/Auth";
 import ForgotPassword from "./pages/ForgotPassword";
@@ -39,6 +40,7 @@ const App = () => (
         <Route path="/" element={<ProtectedRoute><Index /></ProtectedRoute>} />
         <Route path="/chat" element={<ProtectedRoute><Chat /></ProtectedRoute>} />
         <Route path="/destinations" element={<ProtectedRoute><Destinations /></ProtectedRoute>} />
+        <Route path="/destinations/:id" element={<ProtectedRoute><DestinationDetail /></ProtectedRoute>} />
         <Route path="/trips" element={<ProtectedRoute><Trips /></ProtectedRoute>} />
         <Route path="/plan" element={<ProtectedRoute><Plan /></ProtectedRoute>} />
         <Route path="/itinerary/:tripId" element={<ProtectedRoute><Itinerary /></ProtectedRoute>} />

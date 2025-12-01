@@ -2,31 +2,21 @@ import React, { useState } from "react";
 import { MainLayout } from "@/components/layout/MainLayout";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
+import { Skeleton } from "@/components/ui/skeleton";
 import { Search, SlidersHorizontal, Grid3x3, List } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { DestinationCard } from "@/components/destinations/DestinationCard";
+import { useDestinations } from "@/hooks/useDestinations";
+import { useDebounce } from "@/hooks/useDebounce";
 
 const Destinations = () => {
   const [viewMode, setViewMode] = useState<"grid" | "list">("grid");
   const [searchQuery, setSearchQuery] = useState("");
+  const debouncedSearch = useDebounce(searchQuery, 300);
+  
+  const { data: destinations = [], isLoading } = useDestinations(debouncedSearch);
 
   const categories = ["All", "Beach", "Mountain", "City", "Adventure", "Culture", "Romantic"];
-  
-  const destinations = [
-    { id: 1, name: "Paris", country: "France", rating: 4.8, price: "$$$", category: "Culture" },
-    { id: 2, name: "Tokyo", country: "Japan", rating: 4.9, price: "$$$$", category: "City" },
-    { id: 3, name: "Bali", country: "Indonesia", rating: 4.7, price: "$$", category: "Beach" },
-    { id: 4, name: "New York", country: "USA", rating: 4.6, price: "$$$", category: "City" },
-    { id: 5, name: "Barcelona", country: "Spain", rating: 4.8, price: "$$$", category: "Culture" },
-    { id: 6, name: "Dubai", country: "UAE", rating: 4.7, price: "$$$$", category: "City" },
-    { id: 7, name: "Santorini", country: "Greece", rating: 4.9, price: "$$$", category: "Romantic" },
-    { id: 8, name: "Machu Picchu", country: "Peru", rating: 4.8, price: "$$$", category: "Adventure" },
-  ];
-
-  const filteredDestinations = destinations.filter((dest) =>
-    dest.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    dest.country.toLowerCase().includes(searchQuery.toLowerCase())
-  );
 
   return (
     <MainLayout>
@@ -88,8 +78,20 @@ const Destinations = () => {
           "grid gap-4",
           viewMode === "grid" ? "grid-cols-1 sm:grid-cols-2 lg:grid-cols-3" : "grid-cols-1"
         )}>
-          {filteredDestinations.length > 0 ? (
-            filteredDestinations.map((destination) => (
+          {isLoading ? (
+            // Loading skeletons
+            Array.from({ length: 6 }).map((_, i) => (
+              <div key={i} className="space-y-3">
+                <Skeleton className={cn(
+                  "w-full",
+                  viewMode === "grid" ? "h-48" : "h-32"
+                )} />
+                <Skeleton className="h-4 w-3/4" />
+                <Skeleton className="h-4 w-1/2" />
+              </div>
+            ))
+          ) : destinations.length > 0 ? (
+            destinations.map((destination) => (
               <DestinationCard
                 key={destination.id}
                 destination={destination}
@@ -98,7 +100,9 @@ const Destinations = () => {
             ))
           ) : (
             <div className="col-span-full text-center py-12">
-              <p className="text-muted-foreground text-lg">No destinations found matching "{searchQuery}"</p>
+              <p className="text-muted-foreground text-lg">
+                {searchQuery ? `No destinations found matching "${searchQuery}"` : 'No destinations available'}
+              </p>
             </div>
           )}
         </div>

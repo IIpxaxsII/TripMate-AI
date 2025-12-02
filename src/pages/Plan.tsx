@@ -9,9 +9,9 @@ import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Slider } from "@/components/ui/slider";
 import { Badge } from "@/components/ui/badge";
-import { Calendar as CalendarIcon, MapPin, Users, DollarSign, ArrowRight, ArrowLeft } from "lucide-react";
-import { cn } from "@/lib/utils";
+import { Calendar as CalendarIcon, MapPin, Users, DollarSign, ArrowRight, ArrowLeft, Loader2 } from "lucide-react";
 import { format } from "date-fns";
+import { useCreateTrip } from "@/hooks/useCreateTrip";
 
 const Plan = () => {
   const [step, setStep] = useState(1);
@@ -21,6 +21,9 @@ const Plan = () => {
   const [travelers, setTravelers] = useState(2);
   const [budget, setBudget] = useState([2500]);
   const [interests, setInterests] = useState<string[]>([]);
+  const [notes, setNotes] = useState("");
+
+  const createTrip = useCreateTrip();
 
   const interestOptions = [
     "Adventure", "Culture", "Food", "Nature", "Shopping",
@@ -42,6 +45,28 @@ const Plan = () => {
   const handleBack = () => {
     if (step > 1) setStep(step - 1);
   };
+
+  const handleCreateTrip = () => {
+    if (!destination) return;
+
+    const description = [
+      notes,
+      interests.length > 0 ? `Interests: ${interests.join(', ')}` : '',
+      `Travelers: ${travelers}`,
+    ].filter(Boolean).join('\n');
+
+    createTrip.mutate({
+      title: destination,
+      description,
+      start_date: startDate ? format(startDate, 'yyyy-MM-dd') : undefined,
+      end_date: endDate ? format(endDate, 'yyyy-MM-dd') : undefined,
+      budget: budget[0],
+      status: 'draft',
+    });
+  };
+
+  const isStep1Valid = destination.trim().length > 0;
+  const isStep2Valid = true; // Interests are optional
 
   return (
     <MainLayout>
@@ -194,6 +219,8 @@ const Plan = () => {
                   id="notes"
                   placeholder="Any special requirements or preferences?"
                   rows={4}
+                  value={notes}
+                  onChange={(e) => setNotes(e.target.value)}
                 />
               </div>
             </div>
@@ -232,14 +259,23 @@ const Plan = () => {
                   <span className="font-medium">${budget[0].toLocaleString()}</span>
                 </div>
 
-                <div className="p-4 bg-muted rounded-lg">
-                  <span className="text-sm text-muted-foreground block mb-2">Interests</span>
-                  <div className="flex flex-wrap gap-2">
-                    {interests.map((interest) => (
-                      <Badge key={interest} variant="secondary">{interest}</Badge>
-                    ))}
+                {interests.length > 0 && (
+                  <div className="p-4 bg-muted rounded-lg">
+                    <span className="text-sm text-muted-foreground block mb-2">Interests</span>
+                    <div className="flex flex-wrap gap-2">
+                      {interests.map((interest) => (
+                        <Badge key={interest} variant="secondary">{interest}</Badge>
+                      ))}
+                    </div>
                   </div>
-                </div>
+                )}
+
+                {notes && (
+                  <div className="p-4 bg-muted rounded-lg">
+                    <span className="text-sm text-muted-foreground block mb-2">Notes</span>
+                    <p className="text-sm">{notes}</p>
+                  </div>
+                )}
               </div>
             </div>
           )}
@@ -256,13 +292,26 @@ const Plan = () => {
             </Button>
 
             {step < 3 ? (
-              <Button onClick={handleNext}>
+              <Button 
+                onClick={handleNext}
+                disabled={step === 1 && !isStep1Valid}
+              >
                 Next
                 <ArrowRight className="w-4 h-4 ml-2" />
               </Button>
             ) : (
-              <Button className="gap-2">
-                Generate Itinerary
+              <Button 
+                onClick={handleCreateTrip}
+                disabled={createTrip.isPending || !destination}
+              >
+                {createTrip.isPending ? (
+                  <>
+                    <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                    Creating...
+                  </>
+                ) : (
+                  'Create Trip'
+                )}
               </Button>
             )}
           </div>

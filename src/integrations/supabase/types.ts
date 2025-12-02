@@ -80,6 +80,69 @@ export type Database = {
           },
         ]
       }
+      bookings: {
+        Row: {
+          amount: number | null
+          check_in: string | null
+          check_out: string | null
+          created_at: string
+          currency: string | null
+          hotel_name: string | null
+          id: string
+          provider: string | null
+          provider_booking_id: string | null
+          status: string | null
+          trip_id: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          amount?: number | null
+          check_in?: string | null
+          check_out?: string | null
+          created_at?: string
+          currency?: string | null
+          hotel_name?: string | null
+          id?: string
+          provider?: string | null
+          provider_booking_id?: string | null
+          status?: string | null
+          trip_id?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          amount?: number | null
+          check_in?: string | null
+          check_out?: string | null
+          created_at?: string
+          currency?: string | null
+          hotel_name?: string | null
+          id?: string
+          provider?: string | null
+          provider_booking_id?: string | null
+          status?: string | null
+          trip_id?: string | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "bookings_trip_id_fkey"
+            columns: ["trip_id"]
+            isOneToOne: false
+            referencedRelation: "trips"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "bookings_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       chat_messages: {
         Row: {
           content: string

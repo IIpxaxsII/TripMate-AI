@@ -6,7 +6,6 @@ export type Destination = {
   name: string;
   country: string;
   rating?: number;
-  price?: string;
   category?: string;
   description?: string | null;
   image_url?: string | null;
@@ -22,8 +21,17 @@ async function fetchDestinations(search?: string) {
     .order('name', { ascending: true });
 
   if (search && search.trim()) {
-    const pattern = `%${search.trim()}%`;
-    query = query.or(`name.ilike.${pattern},country.ilike.${pattern},city.ilike.${pattern}`);
+    const searchTerms = search.split(',').map(s => s.trim()).filter(Boolean);
+    
+    if (searchTerms.length === 1) {
+      // Single term - search across name, country, city, and category
+      const pattern = `%${searchTerms[0]}%`;
+      query = query.or(`name.ilike.${pattern},country.ilike.${pattern},city.ilike.${pattern},category.ilike.${pattern}`);
+    } else {
+      // Multiple terms (categories) - use IN-like filter with OR
+      const categoryFilters = searchTerms.map(term => `category.ilike.%${term}%`).join(',');
+      query = query.or(categoryFilters);
+    }
   }
 
   const { data, error } = await query;

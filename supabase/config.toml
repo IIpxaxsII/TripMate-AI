@@ -3,6 +3,12 @@ project_id = "nrtuieysilnvegwsjxsa"
 [functions.ai-chat]
 verify_jwt = true
 
+[functions.ai-chat-stream]
+verify_jwt = true
+
+[functions.ai-itinerary]
+verify_jwt = true
+
 [functions.getPexelsImage]
 verify_jwt = true
 
@@ -10,6 +16,9 @@ verify_jwt = true
 verify_jwt = true
 
 [functions.hotel-search]
+verify_jwt = false
+
+[functions.flights-search]
 verify_jwt = false
 
 [functions.save-push-subscription]

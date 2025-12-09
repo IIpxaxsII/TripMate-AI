@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect } from "react";
+import React, { useState, useRef, useEffect, useCallback } from "react";
 import { MainLayout } from "@/components/layout/MainLayout";
 import { MessageBubble } from "@/components/chat/MessageBubble";
 import { ChatInput } from "@/components/chat/ChatInput";
@@ -7,19 +7,23 @@ import { SuggestedPrompts } from "@/components/chat/SuggestedPrompts";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "@/hooks/use-toast";
-import { measurePerformance } from "@/utils/performanceOptimization";
+import { streamChat, ChatMessage } from "@/utils/streamingChat";
 
 interface Message {
   id: string;
   text: string;
   isUser: boolean;
   timestamp: Date;
+  isStreaming?: boolean;
 }
+
+// Debounce to prevent rapid-fire messages
+const SEND_COOLDOWN_MS = 2000;
 
 export default function Chat() {
   const [messages, setMessages] = useState<Message[]>([
     {
-      id: "1",
+      id: "welcome",
       text: "Hello! I'm your AI travel assistant. How can I help you plan your next adventure?",
       isUser: false,
       timestamp: new Date(),
@@ -27,7 +31,9 @@ export default function Chat() {
   ]);
   const [isTyping, setIsTyping] = useState(false);
   const [conversationId] = useState(() => crypto.randomUUID());
+  const [lastSendTime, setLastSendTime] = useState(0);
   const scrollRef = useRef<HTMLDivElement>(null);
+  const abortControllerRef = useRef<AbortController | null>(null);
   const { user } = useAuth();
 
   useEffect(() => {
@@ -37,11 +43,17 @@ export default function Chat() {
   }, [messages, isTyping]);
 
   useEffect(() => {
-    // Load previous messages for this conversation
     if (user) {
       loadMessages();
     }
   }, [user, conversationId]);
+
+  // Cleanup on unmount
+  useEffect(() => {
+    return () => {
+      abortControllerRef.current?.abort();
+    };
+  }, []);
 
   const loadMessages = async () => {
     try {
@@ -60,60 +72,135 @@ export default function Chat() {
           isUser: msg.role === 'user',
           timestamp: new Date(msg.created_at),
         }));
-        setMessages([...messages.slice(0, 1), ...loadedMessages]);
+        setMessages((prev) => [prev[0], ...loadedMessages]);
       }
     } catch (error) {
       console.error('Error loading messages:', error);
     }
   };
 
-  const handleSendMessage = async (text: string) => {
-    const newMessage: Message = {
-      id: Date.now().toString(),
+  const handleSendMessage = useCallback(async (text: string) => {
+    // Client-side rate limiting
+    const now = Date.now();
+    if (now - lastSendTime < SEND_COOLDOWN_MS) {
+      toast({
+        variant: "destructive",
+        title: "Please wait",
+        description: "You're sending messages too quickly. Please wait a moment.",
+      });
+      return;
+    }
+    setLastSendTime(now);
+
+    // Cancel any ongoing stream
+    abortControllerRef.current?.abort();
+    abortControllerRef.current = new AbortController();
+
+    const userMessage: Message = {
+      id: `user-${Date.now()}`,
       text,
       isUser: true,
       timestamp: new Date(),
     };
 
-    setMessages((prev) => [...prev, newMessage]);
+    setMessages((prev) => [...prev, userMessage]);
     setIsTyping(true);
 
+    // Create a placeholder for the assistant message
+    const assistantId = `assistant-${Date.now()}`;
+    let assistantText = '';
+
+    // Prepare messages for API (exclude welcome message)
+    const apiMessages: ChatMessage[] = [...messages.slice(1), userMessage]
+      .map(msg => ({
+        role: msg.isUser ? 'user' as const : 'assistant' as const,
+        content: msg.text
+      }));
+
     try {
-      await measurePerformance('AI Chat Response', async () => {
-        // Prepare messages for API (exclude the welcome message)
-        const apiMessages = [...messages.slice(1), newMessage].map(msg => ({
-          role: msg.isUser ? 'user' : 'assistant',
-          content: msg.text
-        }));
+      await streamChat({
+        messages: apiMessages,
+        conversationId,
+        signal: abortControllerRef.current.signal,
+        onDelta: (delta) => {
+          assistantText += delta;
+          setMessages((prev) => {
+            const lastMsg = prev[prev.length - 1];
+            if (lastMsg?.id === assistantId) {
+              // Update existing assistant message
+              return prev.map((m, i) => 
+                i === prev.length - 1 
+                  ? { ...m, text: assistantText, isStreaming: true }
+                  : m
+              );
+            } else {
+              // Create new assistant message
+              return [...prev, {
+                id: assistantId,
+                text: assistantText,
+                isUser: false,
+                timestamp: new Date(),
+                isStreaming: true,
+              }];
+            }
+          });
+        },
+        onDone: () => {
+          setIsTyping(false);
+          setMessages((prev) => 
+            prev.map(m => 
+              m.id === assistantId 
+                ? { ...m, isStreaming: false }
+                : m
+            )
+          );
 
-        // Call the edge function
-        const { data, error } = await supabase.functions.invoke('ai-chat', {
-          body: {
-            messages: apiMessages,
-            conversationId
+          // Save messages to database
+          if (assistantText) {
+            saveMessages(text, assistantText);
           }
-        });
-
-        if (error) throw error;
-
-        const aiResponse: Message = {
-          id: (Date.now() + 1).toString(),
-          text: data.message,
-          isUser: false,
-          timestamp: new Date(),
-        };
-        
-        setMessages((prev) => [...prev, aiResponse]);
+        },
+        onError: (error) => {
+          setIsTyping(false);
+          console.error('Streaming error:', error);
+          toast({
+            variant: "destructive",
+            title: "Error",
+            description: error.message || "Failed to get response. Please try again.",
+          });
+        }
       });
     } catch (error) {
+      setIsTyping(false);
       console.error('Error sending message:', error);
       toast({
         variant: "destructive",
         title: "Error",
         description: "Failed to send message. Please try again.",
       });
-    } finally {
-      setIsTyping(false);
+    }
+  }, [messages, conversationId, lastSendTime]);
+
+  const saveMessages = async (userContent: string, assistantContent: string) => {
+    if (!user) return;
+    
+    try {
+      await supabase.from('chat_messages').insert([
+        {
+          user_id: user.id,
+          conversation_id: conversationId,
+          role: 'user',
+          content: userContent,
+        },
+        {
+          user_id: user.id,
+          conversation_id: conversationId,
+          role: 'assistant',
+          content: assistantContent,
+        }
+      ]);
+    } catch (error) {
+      console.error('Error saving messages:', error);
     }
   };
 
@@ -137,9 +224,10 @@ export default function Chat() {
                 text={message.text}
                 isUser={message.isUser}
                 timestamp={message.timestamp}
+                isStreaming={message.isStreaming}
               />
             ))}
-            {isTyping && <TypingIndicator />}
+            {isTyping && messages[messages.length - 1]?.isUser && <TypingIndicator />}
             <div ref={scrollRef} />
           </div>
         </div>
@@ -151,7 +239,7 @@ export default function Chat() {
         )}
 
         <div className="p-4 border-t bg-card">
-          <ChatInput onSend={handleSendMessage} />
+          <ChatInput onSend={handleSendMessage} disabled={isTyping} />
         </div>
       </div>
     </MainLayout>

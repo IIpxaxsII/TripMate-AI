@@ -80,6 +80,41 @@ export type Database = {
           },
         ]
       }
+      ai_requests: {
+        Row: {
+          cost_estimate: number | null
+          created_at: string | null
+          function_name: string
+          id: number
+          tokens_used: number | null
+          user_id: string | null
+        }
+        Insert: {
+          cost_estimate?: number | null
+          created_at?: string | null
+          function_name: string
+          id?: number
+          tokens_used?: number | null
+          user_id?: string | null
+        }
+        Update: {
+          cost_estimate?: number | null
+          created_at?: string | null
+          function_name?: string
+          id?: number
+          tokens_used?: number | null
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ai_requests_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       bookings: {
         Row: {
           amount: number | null
@@ -222,6 +257,41 @@ export type Database = {
           updated_at?: string
         }
         Relationships: []
+      }
+      external_requests: {
+        Row: {
+          api_name: string
+          created_at: string | null
+          id: number
+          request_payload: Json | null
+          response_status: number | null
+          user_id: string | null
+        }
+        Insert: {
+          api_name: string
+          created_at?: string | null
+          id?: number
+          request_payload?: Json | null
+          response_status?: number | null
+          user_id?: string | null
+        }
+        Update: {
+          api_name?: string
+          created_at?: string | null
+          id?: number
+          request_payload?: Json | null
+          response_status?: number | null
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "external_requests_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       itineraries: {
         Row: {

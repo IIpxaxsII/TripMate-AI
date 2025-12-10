@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { MainLayout } from "@/components/layout/MainLayout";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -6,14 +6,35 @@ import { Badge } from "@/components/ui/badge";
 import { Label } from "@/components/ui/label";
 import { Slider } from "@/components/ui/slider";
 import { Switch } from "@/components/ui/switch";
-import { Save } from "lucide-react";
-import { useToast } from "@/hooks/use-toast";
+import { Skeleton } from "@/components/ui/skeleton";
+import { Save, Loader2 } from "lucide-react";
+import { useUserPreferences, useUpdateUserPreferences } from "@/hooks/useUserPreferences";
 
 const Preferences = () => {
-  const { toast } = useToast();
-  const [interests, setInterests] = useState<string[]>(["Culture", "Food", "Nature"]);
-  const [budgetRange, setBudgetRange] = useState([1000, 5000]);
+  const { data: preferences, isLoading } = useUserPreferences();
+  const updatePreferences = useUpdateUserPreferences();
+  
+  const [interests, setInterests] = useState<string[]>([]);
+  const [budgetRange, setBudgetRange] = useState<[number, number]>([1000, 5000]);
   const [travelStyle, setTravelStyle] = useState("balanced");
+  const [accessibilityNeeds, setAccessibilityNeeds] = useState<string[]>([]);
+
+  // Load preferences from DB when data is fetched
+  useEffect(() => {
+    if (preferences) {
+      setInterests(preferences.interests || []);
+      setTravelStyle(preferences.travel_style || 'balanced');
+      setAccessibilityNeeds(preferences.accessibility_needs || []);
+      
+      // Parse budget range from string like "1000-5000"
+      if (preferences.budget_range) {
+        const parts = preferences.budget_range.split('-').map(Number);
+        if (parts.length === 2 && !isNaN(parts[0]) && !isNaN(parts[1])) {
+          setBudgetRange([parts[0], parts[1]]);
+        }
+      }
+    }
+  }, [preferences]);
 
   const interestOptions = [
     "Adventure", "Culture", "Food", "Nature", "Shopping",
@@ -27,6 +48,13 @@ const Preferences = () => {
     { id: "luxury", name: "Luxury", description: "Premium experiences and comfort" },
   ];
 
+  const accessibilityOptions = [
+    { id: "wheelchair", label: "Wheelchair Accessible" },
+    { id: "dietary", label: "Dietary Restrictions" },
+    { id: "family", label: "Family-Friendly Options" },
+    { id: "pet", label: "Pet-Friendly Accommodations" },
+  ];
+
   const toggleInterest = (interest: string) => {
     setInterests(prev =>
       prev.includes(interest)
@@ -35,12 +63,44 @@ const Preferences = () => {
     );
   };
 
+  const toggleAccessibility = (need: string) => {
+    setAccessibilityNeeds(prev =>
+      prev.includes(need)
+        ? prev.filter(n => n !== need)
+        : [...prev, need]
+    );
+  };
+
   const handleSave = () => {
-    toast({
-      title: "Preferences saved",
-      description: "Your travel preferences have been updated successfully.",
+    updatePreferences.mutate({
+      interests,
+      travel_style: travelStyle,
+      budget_range: `${budgetRange[0]}-${budgetRange[1]}`,
+      accessibility_needs: accessibilityNeeds,
     });
   };
+
+  if (isLoading) {
+    return (
+      <MainLayout>
+        <div className="container max-w-3xl mx-auto px-4 py-6 space-y-6">
+          <div className="flex items-center justify-between">
+            <div>
+              <Skeleton className="h-8 w-48 mb-2" />
+              <Skeleton className="h-4 w-64" />
+            </div>
+            <Skeleton className="h-10 w-20" />
+          </div>
+          {Array.from({ length: 4 }).map((_, i) => (
+            <Card key={i} className="p-6">
+              <Skeleton className="h-6 w-32 mb-4" />
+              <Skeleton className="h-20 w-full" />
+            </Card>
+          ))}
+        </div>
+      </MainLayout>
+    );
+  }
 
   return (
     <MainLayout>
@@ -52,8 +112,12 @@ const Preferences = () => {
               Customize your travel recommendations
             </p>
           </div>
-          <Button onClick={handleSave}>
-            <Save className="w-4 h-4 mr-2" />
+          <Button onClick={handleSave} disabled={updatePreferences.isPending}>
+            {updatePreferences.isPending ? (
+              <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+            ) : (
+              <Save className="w-4 h-4 mr-2" />
+            )}
             Save
           </Button>
         </div>
@@ -135,7 +199,7 @@ const Preferences = () => {
           <div className="space-y-4">
             <Slider
               value={budgetRange}
-              onValueChange={setBudgetRange}
+              onValueChange={(value) => setBudgetRange(value as [number, number])}
               min={500}
               max={10000}
               step={100}
@@ -158,40 +222,29 @@ const Preferences = () => {
           </div>
 
           <div className="space-y-4">
-            <div className="flex items-center justify-between">
-              <Label htmlFor="wheelchair" className="flex-1">
-                Wheelchair Accessible
-              </Label>
-              <Switch id="wheelchair" />
-            </div>
-
-            <div className="flex items-center justify-between">
-              <Label htmlFor="dietary" className="flex-1">
-                Dietary Restrictions
-              </Label>
-              <Switch id="dietary" />
-            </div>
-
-            <div className="flex items-center justify-between">
-              <Label htmlFor="family" className="flex-1">
-                Family-Friendly Options
-              </Label>
-              <Switch id="family" />
-            </div>
-
-            <div className="flex items-center justify-between">
-              <Label htmlFor="pet" className="flex-1">
-                Pet-Friendly Accommodations
-              </Label>
-              <Switch id="pet" />
-            </div>
+            {accessibilityOptions.map((option) => (
+              <div key={option.id} className="flex items-center justify-between">
+                <Label htmlFor={option.id} className="flex-1">
+                  {option.label}
+                </Label>
+                <Switch 
+                  id={option.id}
+                  checked={accessibilityNeeds.includes(option.id)}
+                  onCheckedChange={() => toggleAccessibility(option.id)}
+                />
+              </div>
+            ))}
           </div>
         </Card>
 
         {/* Save Button */}
         <div className="flex justify-end">
-          <Button size="lg" onClick={handleSave}>
-            <Save className="w-4 h-4 mr-2" />
+          <Button size="lg" onClick={handleSave} disabled={updatePreferences.isPending}>
+            {updatePreferences.isPending ? (
+              <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+            ) : (
+              <Save className="w-4 h-4 mr-2" />
+            )}
             Save Preferences
           </Button>
         </div>

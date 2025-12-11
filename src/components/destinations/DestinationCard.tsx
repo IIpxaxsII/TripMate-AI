@@ -13,7 +13,7 @@ interface DestinationCardProps {
 }
 
 export const DestinationCard = ({ destination, viewMode }: DestinationCardProps) => {
-  const { imageUrl, loading } = usePexelsImage(destination.name);
+  const { imageUrl, loading: imageLoading } = usePexelsImage(destination.name);
   const { data: savedItems } = useSavedItems();
   const toggleSave = useToggleSave();
 
@@ -39,13 +39,20 @@ export const DestinationCard = ({ destination, viewMode }: DestinationCardProps)
             viewMode === "grid" ? "aspect-video" : "w-48 flex-shrink-0 aspect-square"
           )}
         >
-          {loading ? (
+          {imageLoading ? (
             <div className="absolute inset-0 flex items-center justify-center bg-muted">
               <Loader2 className="w-8 h-8 text-primary animate-spin" />
             </div>
-          ) : (imageUrl || destination.image_url) ? (
+          ) : imageUrl ? (
             <img
-              src={imageUrl || destination.image_url || ''}
+              src={imageUrl}
+              alt={`${destination.name}, ${destination.country}`}
+              className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+              loading="lazy"
+            />
+          ) : destination.image_url ? (
+            <img
+              src={destination.image_url}
               alt={`${destination.name}, ${destination.country}`}
               className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
               loading="lazy"

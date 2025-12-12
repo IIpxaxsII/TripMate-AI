@@ -12,6 +12,7 @@ import { Badge } from "@/components/ui/badge";
 import { Calendar as CalendarIcon, MapPin, Users, DollarSign, ArrowRight, ArrowLeft, Loader2 } from "lucide-react";
 import { format } from "date-fns";
 import { useCreateTrip } from "@/hooks/useCreateTrip";
+import { useCurrency } from "@/hooks/useCurrency";
 
 const Plan = () => {
   const [step, setStep] = useState(1);
@@ -24,6 +25,7 @@ const Plan = () => {
   const [notes, setNotes] = useState("");
 
   const createTrip = useCreateTrip();
+  const { format: formatCurrency } = useCurrency();
 
   const interestOptions = [
     "Adventure", "Culture", "Food", "Nature", "Shopping",
@@ -170,7 +172,8 @@ const Plan = () => {
                 </div>
 
                 <div className="space-y-2">
-                  <Label>Budget (USD)</Label>
+                  <Label>Budget</Label>
+                  <Badge variant="secondary" className="text-xs ml-2">Displayed in INR (₹)</Badge>
                   <div className="space-y-3">
                     <div className="flex items-center gap-4">
                       <DollarSign className="w-5 h-5 text-muted-foreground" />
@@ -184,7 +187,8 @@ const Plan = () => {
                       />
                     </div>
                     <div className="text-center">
-                      <span className="text-2xl font-bold">${budget[0].toLocaleString()}</span>
+                      <span className="text-2xl font-bold">{formatCurrency(budget[0], 'USD')}</span>
+                      <p className="text-xs text-muted-foreground mt-1">~${budget[0].toLocaleString()} USD</p>
                     </div>
                   </div>
                 </div>
@@ -256,7 +260,7 @@ const Plan = () => {
 
                 <div className="flex items-center justify-between p-4 bg-muted rounded-lg">
                   <span className="text-sm text-muted-foreground">Budget</span>
-                  <span className="font-medium">${budget[0].toLocaleString()}</span>
+                  <span className="font-medium">{formatCurrency(budget[0], 'USD')}</span>
                 </div>
 
                 {interests.length > 0 && (

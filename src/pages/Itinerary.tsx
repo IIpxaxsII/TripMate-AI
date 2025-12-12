@@ -14,6 +14,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useItineraries, useGenerateItinerary, useAddActivity, useDeleteActivity } from "@/hooks/useItineraries";
 import { useHotelSearch, type Hotel } from "@/hooks/useHotelSearch";
 import { useCreateBooking } from "@/hooks/useBookings";
+import { useCurrency } from "@/hooks/useCurrency";
 import { 
   MapPin, Clock, DollarSign, Edit, Share2, Download, 
   Plus, CheckCircle2, Circle, ChevronDown, ChevronUp,
@@ -30,6 +31,9 @@ const Itinerary = () => {
   const [newActivityTitle, setNewActivityTitle] = useState("");
   const [newActivityLocation, setNewActivityLocation] = useState("");
   const [newActivityTime, setNewActivityTime] = useState("");
+
+  // Currency formatting
+  const { format: formatCurrency } = useCurrency();
 
   // Fetch trip data
   const { data: trip, isLoading: tripLoading } = useQuery({
@@ -184,15 +188,12 @@ const Itinerary = () => {
                   <DollarSign className="w-5 h-5 text-primary" />
                   Budget Tracker
                 </h3>
-                <Button variant="ghost" size="sm">
-                  <Edit className="w-4 h-4 mr-2" />
-                  Edit
-                </Button>
+                <Badge variant="secondary" className="text-xs">All amounts in INR (₹)</Badge>
               </div>
               <div className="space-y-2">
                 <div className="flex justify-between text-sm">
                   <span className="text-muted-foreground">Spent</span>
-                  <span className="font-medium">${budgetSpent} / ${trip.budget}</span>
+                  <span className="font-medium">{formatCurrency(budgetSpent, 'USD')} / {formatCurrency(trip.budget, 'USD')}</span>
                 </div>
                 <div className="h-2 bg-muted rounded-full overflow-hidden">
                   <div
@@ -201,7 +202,7 @@ const Itinerary = () => {
                   />
                 </div>
                 <div className="text-xs text-muted-foreground">
-                  ${(trip.budget || 0) - budgetSpent} remaining
+                  {formatCurrency((trip.budget || 0) - budgetSpent, 'USD')} remaining
                 </div>
               </div>
             </Card>
@@ -407,7 +408,7 @@ const Itinerary = () => {
                           </div>
                         </div>
                         <div className="text-right">
-                          <p className="text-2xl font-bold">${hotel.price}</p>
+                          <p className="text-2xl font-bold">{formatCurrency(hotel.price, 'USD')}</p>
                           <p className="text-xs text-muted-foreground">per night</p>
                         </div>
                       </div>

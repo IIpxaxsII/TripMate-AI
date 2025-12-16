@@ -23,3 +23,6 @@ verify_jwt = false
 
 [functions.save-push-subscription]
 verify_jwt = true
+
+[functions.exchange-rates]
+verify_jwt = false
